@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1661459041 source:c:\users\meu noot\documents\uni\teste\main.c
+	"raylib.h"
+	<stdlib.h>
+	<time.h>
+
