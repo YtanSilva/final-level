@@ -1,4 +1,3 @@
-
 #include "raylib.h"
 #include <stdlib.h>
 #include <time.h>
@@ -7,15 +6,34 @@
 #define ALTURA 440
 #define COLUNA 27
 #define LINHA 11
+#define N 100
+#define RAIO 20
 
 typedef struct{
     int xPos;
     int yPos;
+    int ultMov;
 }JOGADOR;
 
-void movDir( int *xPos, int *yPos, int tecla); // Altera o valor da posi��o baseado no valor apertado no teclado
+typedef struct{
+    int xPos;
+    int yPos;
+    int tipo;
+}CRIATURA;
 
-int podeMover( int xPos, int yPos, char matriz[][COLUNA], int tecla, int linha, int coluna);// Retorna 1 se o movimento eh valido
+typedef struct{
+    double tempo;
+    int plantada;
+    int xPos, yPos;
+}BOMBA;
+
+void movDir( int *xPos, int *yPos, int tecla); // Altera o valor da posição baseado no valor apertado no teclado
+
+int podeMover( int xPos, int yPos, char matriz[][COLUNA], int tecla, int linha, int coluna, BOMBA bomba);// Retorna 1 se o movimento eh valido
+
+int tempoCmp(double tempo, int tempoPerc); // Marca o passar de um tempo "tempoPerc"
+
+void plantarBomba(BOMBA *bomba, JOGADOR jogador); // Função que executa as funcionalidades iniciais de plantar a bomba
 
 int main(void)
 {
@@ -38,8 +56,9 @@ int main(void)
     //Declaracao de variaveis
     int posX, posY, i, j, x, tecla;
     Color cor[50] = {LIGHTGRAY, RED, GREEN, MAGENTA, SKYBLUE, VIOLET,  BLACK};
-    char letras[] = {'W', 'J', 'P', '  ', 'M', 'K','D'};
     JOGADOR jogador;
+    CRIATURA criatura[N];
+    BOMBA bomba;
 
     for(i = 0; i < LINHA; i++){
         for(j = 0; j < COLUNA; j++){
@@ -56,7 +75,7 @@ int main(void)
     srand(time(NULL));
     posX = 0;//coordenada x central
     posY = 0;//coordenada y central
-
+    bomba.plantada = 0;
 
     InitWindow(LARGURA, ALTURA, "Jogo"); // Ajusta o titulo da janela
     SetTargetFPS(60);//Ajusta o jogo para executar a 60 quadros por segundo
@@ -68,9 +87,24 @@ int main(void)
 
         posY = 0;
 
-        if( tecla == KEY_DOWN || tecla == KEY_UP || tecla == KEY_LEFT || tecla == KEY_RIGHT) // Movimentacao do jogador
-            if(podeMover(jogador.xPos, jogador.yPos, matriz, tecla, LINHA, COLUNA))
+
+        // Movimentacao do jogador
+        if( tecla == KEY_DOWN || tecla == KEY_UP || tecla == KEY_LEFT || tecla == KEY_RIGHT){
+            jogador.ultMov = tecla; // Salvando ultimo movimento apertado
+            if(podeMover(jogador.xPos, jogador.yPos, matriz, tecla, LINHA, COLUNA, bomba))
                 movDir(&jogador.xPos, &jogador.yPos, tecla);
+        }
+
+
+
+        // Controle da bomba
+        if(tecla == KEY_SPACE && !bomba.plantada &&
+           podeMover(jogador.xPos, jogador.yPos, matriz, jogador.ultMov, LINHA, COLUNA, bomba)) // Bomba so pode ser mandada se o jogador estiver olhando para um ponto livre
+            plantarBomba(&bomba, jogador);
+        else if(tempoCmp(bomba.tempo, 4)) // Se acabar o tempo
+        {
+            bomba.plantada = 0;
+        }
 
         BeginDrawing();
         ClearBackground(RAYWHITE);//Limpa e define uma cor de fundo
@@ -99,17 +133,41 @@ int main(void)
                     posX += 40;
                 }
             }
+
             posX = 0;
             posY += 40;
         }
 
+
         DrawRectangle(jogador.xPos * ARESTA, jogador.yPos * ARESTA, ARESTA, ARESTA, cor[4]);
+
+        if(bomba.plantada) // Desenhar a bomba se ela estiver plantada
+            DrawCircle(bomba.xPos * ARESTA + RAIO, bomba.yPos * ARESTA + RAIO, RAIO, WHITE);
+
 
         EndDrawing();
         }
 
     CloseWindow();// Fecha janela
     return 0;
+}
+void plantarBomba(BOMBA *bomba, JOGADOR jogador)
+{
+    bomba -> tempo = GetTime(); // Instante que a bomba foi plantada
+    bomba -> plantada = 1;
+
+    movDir(&jogador.xPos, &jogador.yPos, jogador.ultMov); // Proxima posicao da bomba
+    bomba -> xPos = jogador.xPos;
+    bomba -> yPos = jogador.yPos;
+}
+int tempoCmp(double tempo, int tempoPerc)
+{
+    int passouTempo = 0;
+
+    if(GetTime() - tempo > tempoPerc) // Se o tempo for maior que o esperado
+        passouTempo = 1;
+
+    return passouTempo;
 }
 
 void movDir( int *xPos, int *yPos, int tecla)
@@ -130,13 +188,14 @@ void movDir( int *xPos, int *yPos, int tecla)
     }
 }
 
-int podeMover( int xPos, int yPos, char matriz[][COLUNA], int tecla, int linha, int coluna)
+int podeMover( int xPos, int yPos, char matriz[][COLUNA], int tecla, int linha, int coluna, BOMBA bomba)
 {
     int flag_mov = 0;
 
     movDir(&xPos, &yPos, tecla);
 
-    if(xPos >= 0 && xPos < coluna && yPos >= 0 && yPos < linha && matriz[yPos][xPos] != 'W' && matriz[yPos][xPos] != 'D')
+    if(xPos >= 0 && xPos < coluna && yPos >= 0 && yPos < linha && matriz[yPos][xPos] != 'W' && matriz[yPos][xPos] != 'D' // Não bater em parede
+       && (xPos != bomba.xPos || yPos != bomba.yPos || !bomba.plantada )) // Não for na mesma posicao da bomba
         flag_mov = 1;
 
     return flag_mov;
