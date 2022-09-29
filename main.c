@@ -1,9 +1,17 @@
+#include "raylib.h"
+#include "stdio.h"
+
+#define LARGURA 1080
 #define ALTURA 440
+#define ARESTA 40
 #define COLUNA 27
 #define LINHA 11
 #define N 100
 #define RAIO 20
 #define EXPLOSAO 3
+
+
+
 
 typedef struct{
     int xPos;
@@ -43,6 +51,11 @@ void expBomba(BOMBA *bomba, int raio); // Função que passa as posicoes x,y da 
 
 void controleBomba(BOMBA *bomba, char matriz[][COLUNA], int tecla, JOGADOR jogador); // Funcao que executa todos os controles de estado da bomba
 
+void desenharMapa(char letra, int *posX, int *posY);
+
+void leMapa(char matriz[LINHA][COLUNA], int*posX, int *posY);
+
+
 int main(void)
 {
 
@@ -63,7 +76,7 @@ int main(void)
 
     //Declaracao de variaveis
     int posX, posY, i, j, x, tecla, cont = 0;
-    Color cor[50] = {LIGHTGRAY, RED, GREEN, MAGENTA, SKYBLUE, VIOLET,  BLACK};
+
     JOGADOR jogador;
     CRIATURA criatura[N];
     BOMBA bomba;
@@ -72,6 +85,7 @@ int main(void)
 
     for(i = 0; i < LINHA; i++){
         for(j = 0; j < COLUNA; j++){
+
             if(matriz[i][j] == 'J'){
                 jogador.xPos = j;
                 jogador.yPos = i;
@@ -148,36 +162,10 @@ int main(void)
         ClearBackground(RAYWHITE);//Limpa e define uma cor de fundo
 
 
-        for(i = 0; i < LINHA; i++){
-            for(j = 0; j < COLUNA; j++){
-
-                if(matriz[i][j] == 'W'){
-                    DrawRectangle(posX, posY, ARESTA, ARESTA, cor[0]);//Desenha o quadrado na posicao adequada
-                    posX += 40;
-                }else if(matriz[i][j] == 'M'){
-                    DrawRectangle(posX, posY, ARESTA, ARESTA, cor[1]);//Desenha o quadrado na posicao adequada
-                    posX += 40;
-                }else if(matriz[i][j] == 'K'){
-                    DrawRectangle(posX, posY, ARESTA, ARESTA, cor[2]);//Desenha o quadrado na posicao adequada
-                    posX += 40;
-                }else if(matriz[i][j] == 'P'){
-                    DrawRectangle(posX, posY, ARESTA, ARESTA, cor[3]);//Desenha o quadrado na posicao adequada
-                    posX += 40;
-                }else if(matriz[i][j] == 'D'){
-                    DrawRectangle(posX, posY, ARESTA, ARESTA, cor[5]);//Desenha o quadrado na posicao adequada
-                    posX += 40;
-                }else if(matriz[i][j] == ' '){
-                    DrawRectangle(posX, posY, ARESTA, ARESTA, cor[6]);//Desenha o quadrado na posicao adequada
-                    posX += 40;
-                }
-            }
-
-            posX = 0;
-            posY += 40;
-        }
+        leMapa(*matriz, &posX, &posY);
 
 
-        DrawRectangle(jogador.xPos * ARESTA, jogador.yPos * ARESTA, ARESTA, ARESTA, cor[4]);
+        DrawRectangle(jogador.xPos * ARESTA, jogador.yPos * ARESTA, ARESTA, ARESTA, GREEN);
 
         for(i = 0; i < cont; i++)
             DrawCircle(criatura[i].xPos * ARESTA + RAIO, criatura[i].yPos * ARESTA + RAIO, RAIO, GREEN);
@@ -196,6 +184,65 @@ int main(void)
     CloseWindow();// Fecha janela
     return 0;
 }
+
+void leMapa(char matriz[LINHA][COLUNA], int *posX, int *posY){
+    int i, j;
+
+    for(i = 0; i < LINHA; i++){
+            for(j = 0; j < COLUNA; j++){
+
+                if(matriz[i][j] == 'W'){
+                    desenharMapa('W', &posX, &posY);//Desenha o quadrado na posicao adequada
+                }else if(matriz[i][j] == 'M'){
+                   desenharMapa('M', &posX, &posY);
+                }else if(matriz[i][j] == 'K'){
+                    desenharMapa('K', &posX, &posY);
+                }else if(matriz[i][j] == 'P'){
+                    desenharMapa('P', &posX, &posY);
+                }else if(matriz[i][j] == 'D'){
+                    desenharMapa('D', &posX, &posY);
+                }else if(matriz[i][j] == ' '){
+                    desenharMapa(' ', &posX, &posY);
+                }
+            }
+
+            posX = 0;
+            posY += 40;
+        }
+}
+
+void desenharMapa(char letra, int *posX, int *posY){
+    Color cor[50] = {LIGHTGRAY, RED, GREEN, MAGENTA, SKYBLUE, VIOLET,  BLACK};
+    switch(letra){
+        case 'W':
+            DrawRectangle(posX, posY, ARESTA, ARESTA, LIGHTGRAY);//Desenha o quadrado na posicao adequada
+            posX += 40;
+            break;
+        case 'M':
+             DrawRectangle(posX, posY, ARESTA, ARESTA, BLACK);//Desenha o quadrado na posicao adequada
+             posX += 40;
+             break;
+        case 'K':
+            DrawRectangle(posX, posY, ARESTA, ARESTA, MAGENTA);//Desenha o quadrado na posicao adequada
+            posX += 40;
+            break;
+        case 'P':
+             DrawRectangle(posX, posY, ARESTA, ARESTA, SKYBLUE);//Desenha o quadrado na posicao adequada
+             posX += 40;
+             break;
+        case 'D':
+            DrawRectangle(posX, posY, ARESTA, ARESTA, VIOLET);//Desenha o quadrado na posicao adequada
+            posX += 40;
+            break;
+        case ' ':
+             DrawRectangle(posX, posY, ARESTA, ARESTA, BLACK);//Desenha o quadrado na posicao adequada
+             posX += 40;
+             break;
+
+    }
+}
+
+
 void plantarBomba(BOMBA *bomba, JOGADOR jogador)
 {
     bomba -> tempo = GetTime(); // Instante que a bomba foi plantada
