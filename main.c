@@ -10,9 +10,6 @@
 #define RAIO 20
 #define EXPLOSAO 3
 
-
-
-
 typedef struct{
     int xPos;
     int yPos;
@@ -51,10 +48,7 @@ void expBomba(BOMBA *bomba, int raio); // Função que passa as posicoes x,y da 
 
 void controleBomba(BOMBA *bomba, char matriz[][COLUNA], int tecla, JOGADOR jogador); // Funcao que executa todos os controles de estado da bomba
 
-void desenharMapa(char letra, int *posX, int *posY);
-
-void leMapa(char matriz[LINHA][COLUNA], int*posX, int *posY);
-
+void desenhaMapa(char matriz[][COLUNA], Color cor[50]);
 
 int main(void)
 {
@@ -76,7 +70,7 @@ int main(void)
 
     //Declaracao de variaveis
     int posX, posY, i, j, x, tecla, cont = 0;
-
+    Color cor[50] = {LIGHTGRAY, RED, GREEN, MAGENTA, SKYBLUE, VIOLET,  BLACK};
     JOGADOR jogador;
     CRIATURA criatura[N];
     BOMBA bomba;
@@ -85,7 +79,6 @@ int main(void)
 
     for(i = 0; i < LINHA; i++){
         for(j = 0; j < COLUNA; j++){
-
             if(matriz[i][j] == 'J'){
                 jogador.xPos = j;
                 jogador.yPos = i;
@@ -161,11 +154,10 @@ int main(void)
         BeginDrawing();
         ClearBackground(RAYWHITE);//Limpa e define uma cor de fundo
 
+        desenhaMapa(matriz, cor);
 
-        leMapa(*matriz, &posX, &posY);
 
-
-        DrawRectangle(jogador.xPos * ARESTA, jogador.yPos * ARESTA, ARESTA, ARESTA, GREEN);
+        DrawRectangle(jogador.xPos * ARESTA, jogador.yPos * ARESTA, ARESTA, ARESTA, cor[4]);
 
         for(i = 0; i < cont; i++)
             DrawCircle(criatura[i].xPos * ARESTA + RAIO, criatura[i].yPos * ARESTA + RAIO, RAIO, GREEN);
@@ -185,63 +177,39 @@ int main(void)
     return 0;
 }
 
-void leMapa(char matriz[LINHA][COLUNA], int *posX, int *posY){
-    int i, j;
+void desenhaMapa(char matriz[][COLUNA], Color cor[50]){
+    int i,j;
+    int posX=0, posY=0;
 
-    for(i = 0; i < LINHA; i++){
+        for(i = 0; i < LINHA; i++){
             for(j = 0; j < COLUNA; j++){
 
                 if(matriz[i][j] == 'W'){
-                    desenharMapa('W', &posX, &posY);//Desenha o quadrado na posicao adequada
+                    DrawRectangle(posX, posY, ARESTA, ARESTA, cor[0]);//Desenha o quadrado na posicao adequada
+                    posX += 40;
                 }else if(matriz[i][j] == 'M'){
-                   desenharMapa('M', &posX, &posY);
+                    DrawRectangle(posX, posY, ARESTA, ARESTA, cor[6]);//Desenha o quadrado na posicao adequada
+                    posX += 40;
                 }else if(matriz[i][j] == 'K'){
-                    desenharMapa('K', &posX, &posY);
+                    DrawRectangle(posX, posY, ARESTA, ARESTA, cor[2]);//Desenha o quadrado na posicao adequada
+                    posX += 40;
                 }else if(matriz[i][j] == 'P'){
-                    desenharMapa('P', &posX, &posY);
+                    DrawRectangle(posX, posY, ARESTA, ARESTA, cor[3]);//Desenha o quadrado na posicao adequada
+                    posX += 40;
                 }else if(matriz[i][j] == 'D'){
-                    desenharMapa('D', &posX, &posY);
+                    DrawRectangle(posX, posY, ARESTA, ARESTA, cor[5]);//Desenha o quadrado na posicao adequada
+                    posX += 40;
                 }else if(matriz[i][j] == ' '){
-                    desenharMapa(' ', &posX, &posY);
+                    DrawRectangle(posX, posY, ARESTA, ARESTA, cor[6]);//Desenha o quadrado na posicao adequada
+                    posX += 40;
                 }
             }
 
             posX = 0;
             posY += 40;
         }
+
 }
-
-void desenharMapa(char letra, int *posX, int *posY){
-    Color cor[50] = {LIGHTGRAY, RED, GREEN, MAGENTA, SKYBLUE, VIOLET,  BLACK};
-    switch(letra){
-        case 'W':
-            DrawRectangle(posX, posY, ARESTA, ARESTA, LIGHTGRAY);//Desenha o quadrado na posicao adequada
-            posX += 40;
-            break;
-        case 'M':
-             DrawRectangle(posX, posY, ARESTA, ARESTA, BLACK);//Desenha o quadrado na posicao adequada
-             posX += 40;
-             break;
-        case 'K':
-            DrawRectangle(posX, posY, ARESTA, ARESTA, MAGENTA);//Desenha o quadrado na posicao adequada
-            posX += 40;
-            break;
-        case 'P':
-             DrawRectangle(posX, posY, ARESTA, ARESTA, SKYBLUE);//Desenha o quadrado na posicao adequada
-             posX += 40;
-             break;
-        case 'D':
-            DrawRectangle(posX, posY, ARESTA, ARESTA, VIOLET);//Desenha o quadrado na posicao adequada
-            posX += 40;
-            break;
-        case ' ':
-             DrawRectangle(posX, posY, ARESTA, ARESTA, BLACK);//Desenha o quadrado na posicao adequada
-             posX += 40;
-             break;
-
-    }
-}
-
 
 void plantarBomba(BOMBA *bomba, JOGADOR jogador)
 {
