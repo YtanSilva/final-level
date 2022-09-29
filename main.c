@@ -48,10 +48,9 @@ void expBomba(BOMBA *bomba, int raio); // Função que passa as posicoes x,y da 
 
 void controleBomba(BOMBA *bomba, char matriz[][COLUNA], int tecla, JOGADOR jogador); // Funcao que executa todos os controles de estado da bomba
 
-void desenhaMapa(char matriz[][COLUNA], Color cor[50], JOGADOR jogador) ;
+void desenhaMapa(char matriz[][COLUNA], Color cor[50], JOGADOR jogador, CRIATURA *criatura, BOMBA bomba, int cont) ; // funcao que aplica as estilizações as matrizes
 
-int main(void)
-{
+int main(void) {
 
     char matriz[LINHA][COLUNA] = {
         'W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W',
@@ -67,7 +66,6 @@ int main(void)
         'W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W',
     };
 
-
     //Declaracao de variaveis
     int posX, posY, i, j, x, tecla, cont = 0;
     Color cor[50] = {LIGHTGRAY, RED, GREEN, MAGENTA, SKYBLUE, VIOLET,  BLACK};
@@ -77,14 +75,14 @@ int main(void)
     double tempCriatura = GetTime();
 
 
-    for(i = 0; i < LINHA; i++){
-        for(j = 0; j < COLUNA; j++){
-            if(matriz[i][j] == 'J'){
+    for (i = 0; i < LINHA; i++){
+        for (j = 0; j < COLUNA; j++){
+            if (matriz[i][j] == 'J'){
                 jogador.xPos = j;
                 jogador.yPos = i;
                 matriz[i][j] = ' ';
             }
-            if(matriz[i][j] == 'M'){
+            if (matriz[i][j] == 'M'){
                 criatura[cont].xPos = j;
                 criatura[cont].yPos = i;
                 criatura[cont].tipo = matriz[i][j];
@@ -114,9 +112,7 @@ int main(void)
     while (!WindowShouldClose())// Detecta se deve continuar
     {
         tecla = GetKeyPressed();
-
         posY = 0;
-
 
         // Movimentacao do jogador
         if( tecla == KEY_DOWN || tecla == KEY_UP || tecla == KEY_LEFT || tecla == KEY_RIGHT){
@@ -125,11 +121,8 @@ int main(void)
                 movDir(&jogador.xPos, &jogador.yPos, tecla);
         }
 
-
-
         // Controle da bomba
         controleBomba(&bomba,matriz,tecla,jogador);
-
 
         //Controle Criaturas
         if(tempoCmp(tempCriatura,1)){
@@ -139,43 +132,28 @@ int main(void)
                     criatura[i].direcao = rand()%4 + KEY_RIGHT;
                     criatura[i].movCont = 0;
                 }
-
                 if(podeMover(criatura[i].xPos, criatura[i].yPos, matriz, criatura[i].direcao, LINHA, COLUNA, bomba)){
                     movDir(&criatura[i].xPos, &criatura[i].yPos, criatura[i].direcao);
                     criatura[i].movCont++;
                 }
-
                 printf("\n%d %d", criatura[i].xPos, criatura[i].yPos);
             }
             printf("\n\n");
         }
 
-
         BeginDrawing();
+
         ClearBackground(RAYWHITE);//Limpa e define uma cor de fundo
+        desenhaMapa(matriz, cor, jogador, &criatura, bomba, cont);
 
-        desenhaMapa(matriz, cor, jogador);
-
-
-        for(i = 0; i < cont; i++)
-            DrawCircle(criatura[i].xPos * ARESTA + RAIO, criatura[i].yPos * ARESTA + RAIO, RAIO, GREEN);
-
-        if(bomba.plantada) // Desenhar a bomba se ela estiver plantada
-            DrawCircle(bomba.xPos * ARESTA + RAIO, bomba.yPos * ARESTA + RAIO, RAIO, WHITE);
-        if(bomba.estadoExp){
-            for(i = 0; i < EXPLOSAO * EXPLOSAO; i++){
-                if(matriz[bomba.yExp[i]][bomba.xExp[i]] != 'W')
-                    DrawCircle(bomba.xExp[i] * ARESTA + RAIO,bomba.yExp[i] * ARESTA + RAIO, RAIO, RED);
-            }
-        }
         EndDrawing();
-        }
 
+        }
     CloseWindow();// Fecha janela
     return 0;
 }
 
-void desenhaMapa(char matriz[][COLUNA], Color cor[50],  JOGADOR jogador){
+void desenhaMapa(char matriz[][COLUNA], Color cor[50],  JOGADOR jogador, CRIATURA *criatura, BOMBA bomba,int cont){
     int i,j;
     int posX=0, posY=0;
 
@@ -208,7 +186,17 @@ void desenhaMapa(char matriz[][COLUNA], Color cor[50],  JOGADOR jogador){
 
         DrawRectangle(jogador.xPos * ARESTA, jogador.yPos * ARESTA, ARESTA, ARESTA, cor[4]);
 
+        for(i = 0; i < cont; i++)
+            DrawCircle(criatura[i].xPos * ARESTA + RAIO, criatura[i].yPos * ARESTA + RAIO, RAIO, GREEN);
 
+        if(bomba.plantada) // Desenhar a bomba se ela estiver plantada
+            DrawCircle(bomba.xPos * ARESTA + RAIO, bomba.yPos * ARESTA + RAIO, RAIO, WHITE);
+        if(bomba.estadoExp){
+            for(i = 0; i < EXPLOSAO * EXPLOSAO; i++){
+                if(matriz[bomba.yExp[i]][bomba.xExp[i]] != 'W')
+                    DrawCircle(bomba.xExp[i] * ARESTA + RAIO,bomba.yExp[i] * ARESTA + RAIO, RAIO, RED);
+            }
+        }
 }
 
 void plantarBomba(BOMBA *bomba, JOGADOR jogador)
@@ -217,108 +205,101 @@ void plantarBomba(BOMBA *bomba, JOGADOR jogador)
     bomba -> plantada = 1;
 
     movDir(&jogador.xPos, &jogador.yPos, jogador.ultMov); // Proxima posicao da bomba
+
     bomba -> xPos = jogador.xPos;
     bomba -> yPos = jogador.yPos;
 }
-int tempoCmp(double tempo, float tempoPerc)
-{
-    int passouTempo = 0;
+int tempoCmp(double tempo, float tempoPerc){
 
+    int passouTempo = 0;
     if(GetTime() - tempo > tempoPerc)// Se o tempo for maior que o esperado
         passouTempo = 1;
-
 
     return passouTempo;
 }
 
-void movDir( int *xPos, int *yPos, int tecla)
-{
-       switch(tecla){
-    case KEY_DOWN:
-        *yPos += 1;
-        break;
-    case KEY_UP:
-        *yPos -= 1;
-        break;
-    case KEY_RIGHT:
-        *xPos += 1;
-        break;
-    case KEY_LEFT:
-        *xPos -= 1;
-        break;
+void movDir( int *xPos, int *yPos, int tecla) {
+
+    switch(tecla){
+        case KEY_DOWN:
+            *yPos += 1;
+            break;
+        case KEY_UP:
+            *yPos -= 1;
+            break;
+        case KEY_RIGHT:
+            *xPos += 1;
+            break;
+        case KEY_LEFT:
+            *xPos -= 1;
+            break;
     }
 }
 
-int podeMover( int xPos, int yPos, char matriz[][COLUNA], int tecla, int linha, int coluna, BOMBA bomba)
-{
+int podeMover( int xPos, int yPos, char matriz[][COLUNA], int tecla, int linha, int coluna, BOMBA bomba) {
+
     int flag_mov = 0;
-
     movDir(&xPos, &yPos, tecla);
-
-    if(verifColisMap(xPos,yPos,matriz) // Não bater em parede
-       && (verifColisCord(xPos,yPos, bomba.xPos,bomba.yPos) || !bomba.plantada )) // Não for na mesma posicao da bomba
+    if(verifColisMap(xPos,yPos,matriz) && (verifColisCord(xPos,yPos, bomba.xPos,bomba.yPos) || !bomba.plantada )){
+        // Se Não bater em parede && Não for na mesma posicao da bomba
         flag_mov = 1;
-
+       }
     return flag_mov;
 }
 
-void expBomba(BOMBA *bomba, int raio)
-{
-    int i, j, contPos = 0;
 
-    for(i = bomba->xPos - raio/2; i <= bomba->xPos + raio/2; i++){
-        for(j = bomba->yPos - raio/2; j <= bomba->yPos + raio/2; j++){
+void expBomba(BOMBA *bomba, int raio) {
+
+    int i, j, contPos = 0;
+    for(i = bomba -> xPos - raio/2; i <= bomba -> xPos + raio/2; i++){
+        for(j = bomba -> yPos - raio/2; j <= bomba -> yPos + raio/2; j++){
             //Lendo todos os pontos da matriz detro da explosao
-            bomba->xExp[contPos] = i;
-            bomba->yExp[contPos] = j;
+            bomba -> xExp[contPos] = i;
+            bomba -> yExp[contPos] = j;
             contPos++;
         }
     }
 }
 
-void controleBomba(BOMBA *bomba, char matriz[][COLUNA], int tecla, JOGADOR jogador)
-{
+void controleBomba(BOMBA *bomba, char matriz[][COLUNA], int tecla, JOGADOR jogador) {
+
     int i;
-
-    if(tecla == KEY_SPACE && !bomba->plantada &&
-       podeMover(jogador.xPos, jogador.yPos, matriz, jogador.ultMov, LINHA, COLUNA, *bomba)){ // Bomba so pode ser mandada se o jogador estiver olhando para um ponto livre
+    if(tecla == KEY_SPACE && !bomba -> plantada && podeMover(jogador.xPos, jogador.yPos, matriz, jogador.ultMov, LINHA, COLUNA, *bomba)) { // Bomba so pode ser mandada se o jogador estiver olhando para um ponto livre
         plantarBomba(bomba, jogador);
-        bomba->tempoExp = 0;
+        bomba -> tempoExp = 0;
 
-    }
-    else if(tempoCmp(bomba->tempo, 4) && bomba->plantada) // Se acabar o tempo
-    {
+    }else if (tempoCmp(bomba->tempo, 4) && bomba->plantada) {          // Se acabar o tempo
         bomba->plantada = 0;
         expBomba(bomba, EXPLOSAO);
         bomba->tempoExp = GetTime();
         bomba->estadoExp = 1;
 
-    }
-    else if(tempoCmp(bomba->tempoExp, .15) && bomba->estadoExp){
-        bomba->estadoExp = 0;
-      for(i = 0; i < 9; i++)
-        if(matriz[bomba->yExp[i]][bomba->xExp[i]] == 'D')
-              matriz[bomba->yExp[i]][bomba->xExp[i]] = ' ';
+    } else if (tempoCmp(bomba -> tempoExp, .15) && bomba -> estadoExp) {
+        bomba -> estadoExp = 0;
+        for (i = 0; i < 9; i++) {
+            if (matriz[bomba -> yExp[i]][bomba -> xExp[i]] == 'D') {
+                  matriz[bomba -> yExp[i]][bomba -> xExp[i]] = ' ';
+            }
+        }
     }
 }
 
-int verifColisCord(int xPos1, int yPos1, int xPos2, int yPos2)
+
+int verifColisCord (int xPos1, int yPos1, int xPos2, int yPos2)
 {
     int retorno = 1;
-
-    if(xPos1 == xPos2 && yPos1 == yPos2)
+    if (xPos1 == xPos2 && yPos1 == yPos2){
         retorno = 0;
-
+    }
     return retorno;
 }
 
-int verifColisMap(int xPos, int yPos, char mapa[][COLUNA])
+
+int verifColisMap (int xPos, int yPos, char mapa[][COLUNA])
 {
     int retorno = 1;
-
-    if((mapa[yPos][xPos] == 'D' || mapa[yPos][xPos] == 'W'))
+    if(mapa[yPos][xPos] == 'D' || mapa[yPos][xPos] == 'W'){
         retorno = 0;
-
+    }
    return retorno;
-
 }
