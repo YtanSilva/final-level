@@ -48,7 +48,7 @@ void expBomba(BOMBA *bomba, int raio); // Função que passa as posicoes x,y da 
 
 void controleBomba(BOMBA *bomba, char matriz[][COLUNA], int tecla, JOGADOR jogador); // Funcao que executa todos os controles de estado da bomba
 
-void desenhaMapa(char matriz[][COLUNA], Color cor[50]);
+void desenhaMapa(char matriz[][COLUNA], Color cor[50], JOGADOR jogador) ;
 
 int main(void)
 {
@@ -154,10 +154,8 @@ int main(void)
         BeginDrawing();
         ClearBackground(RAYWHITE);//Limpa e define uma cor de fundo
 
-        desenhaMapa(matriz, cor);
+        desenhaMapa(matriz, cor, jogador);
 
-
-        DrawRectangle(jogador.xPos * ARESTA, jogador.yPos * ARESTA, ARESTA, ARESTA, cor[4]);
 
         for(i = 0; i < cont; i++)
             DrawCircle(criatura[i].xPos * ARESTA + RAIO, criatura[i].yPos * ARESTA + RAIO, RAIO, GREEN);
@@ -177,7 +175,7 @@ int main(void)
     return 0;
 }
 
-void desenhaMapa(char matriz[][COLUNA], Color cor[50]){
+void desenhaMapa(char matriz[][COLUNA], Color cor[50],  JOGADOR jogador){
     int i,j;
     int posX=0, posY=0;
 
@@ -204,10 +202,12 @@ void desenhaMapa(char matriz[][COLUNA], Color cor[50]){
                     posX += 40;
                 }
             }
-
             posX = 0;
             posY += 40;
         }
+
+        DrawRectangle(jogador.xPos * ARESTA, jogador.yPos * ARESTA, ARESTA, ARESTA, cor[4]);
+
 
 }
 
